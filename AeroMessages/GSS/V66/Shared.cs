@@ -304,6 +304,45 @@ namespace AeroMessages.GSS.V66
         public byte Unk6;
     }
 
+    public enum ForcedMovementType
+    {
+        Teleport = 1,
+        Slide = 2,
+        ForcePush = 3,
+        RopePull = 4, // RopePull = 69
+        MovementPermissions = 5, // ? SpecialMovementPermissions = 73, not in sdb 1297 or 1962
+        Bullrush = 6, // Bullrush = 75
+        Immobilize = 7, // ApplyFreeze = 114, until effect expires
+        ClimbLedge = 8, // ClimbLedge = 115
+        FallToGround = 9, // FallToGround = 235 ? or launch into air
+        OrientationLock = 10, // OrientationLock = 222
+        TeleportAndImmobilize = 11,
+        TurnToPositionOverTime = 12, // MovementFacing = 379
+        Tether = 13, // MovementTether = 384
+
+        // 11 'both' cmds
+        // ForcePushCommand, // 59
+        // RopePullCommand, // 69
+        // SpecialMovementPermissionsCommand, // 73
+        // BullRushCommand, // 75
+        // ApplyImpulseCommand, // 90
+        // ApplyFreezeCommand, // 114
+        // ClimbLedgeCommand, // 115
+        // MovementSlideCommand, // 206
+        // OrientationLockCommand, // 222
+        // MovementFacingCommand, // 379
+        // MovementTetherCommand, // 384
+        // FallToGroundCommand, // 235, server
+        // SetOrientationCommand, // 51, server, Object
+        // SetPitchCommand, // 52, server, Object
+        // SetPositionCommand, // 50, server, Object
+        // SetYawCommand, // 53, server, Object
+        // TeleportCommand, // 215, server
+        // AimSwayCommand, // client
+        // SetFocalPointCommand, // client
+        // CancelRopePullCommand, // 87, server
+    }
+
     [AeroBlock]
     public struct ForcedMovementData
     {
@@ -312,50 +351,50 @@ namespace AeroMessages.GSS.V66
 
         public byte HaveUnk2;
         [AeroIf(nameof(HaveUnk2), 1)]
-        public ulong Unk2;
+        public ulong Unk2; // maybe source
 
         [AeroIf(nameof(Type), 0x01)]
-        public ForcedMovementType1Params Params1;
+        public Teleport Teleport;
 
         [AeroIf(nameof(Type), 0x02)]
-        public ForcedMovementType2Params Params2;
+        public GenericMovementAlsoSlide Slide;
 
         [AeroIf(nameof(Type), 0x03)]
         public ForcedMovementType3Params Params3;
 
         [AeroIf(nameof(Type), 0x04)]
-        public ForcedMovementType4Params Params4; // Uses rope cvars
+        public RopePull Params4; // Uses rope cvars
 
         [AeroIf(nameof(Type), 0x05)]
-        public ForcedMovementType5Params Params5;
+        public MovementPermissions MovementPermissions;
 
         [AeroIf(nameof(Type), 0x06)]
-        public ForcedMovementType6Params Params6; // Uses bullrush cvars
+        public Bullrush Bullrush; // Uses bullrush cvars
 
         [AeroIf(nameof(Type), 0x07)]
-        public ForcedMovementType7Params Params7;
+        public Immobilize Immobilize;
 
         [AeroIf(nameof(Type), 0x08)]
         public ForcedMovementType8Params Params8; // Uses grapple cvars
 
         [AeroIf(nameof(Type), 0x09)]
-        public ForcedMovementType9Params Params9; // Uses "tweak.PlayerGravity" cvar
+        public FallToGround FallToGround; // Uses "tweak.PlayerGravity" cvar
 
         [AeroIf(nameof(Type), 0x0a)]
-        public ForcedMovementType10Params Params10;
+        public OrientationLock OrientationLock;
 
         [AeroIf(nameof(Type), 0x0b)]
-        public ForcedMovementType11Params Params11;
+        public TeleportAndImmobilize TeleportAndImmobilize;
 
         [AeroIf(nameof(Type), 0x0c)]
-        public ForcedMovementType12Params Params12;
+        public TurnToPositionOverTime TurnToPositionOverTime;
 
         [AeroIf(nameof(Type), 0x0d)]
-        public ForcedMovementType13Params Params13;
+        public Tether Tether;
     }
 
     [AeroBlock]
-    public struct ForcedMovementType1Params
+    public struct Teleport
     {
         public Vector3 Position;
         public Vector3 Direction;
@@ -364,15 +403,15 @@ namespace AeroMessages.GSS.V66
     }
 
     [AeroBlock]
-    public struct ForcedMovementType2Params
+    public struct GenericMovementAlsoSlide
     {
-        public Vector3 Unk1;
+        public Vector3 Destination;
         public Vector3 Unk2;
-        public uint Time1;
-        public uint Time2;
-        public float Unk5;
-        public byte Unk6;
-        public byte Unk7;
+        public uint StartTime;
+        public uint EndTime;
+        public float Speed;
+        public byte Unk6; // animation type etc flags from bytes of MovementSlide? 1 doesnt move, 3 slides
+        public byte OrientationType; // 2 - character rotates towards Destination over duration
     }
 
     [AeroBlock]
@@ -391,36 +430,44 @@ namespace AeroMessages.GSS.V66
     }
 
     [AeroBlock]
-    public struct ForcedMovementType4Params
+    public struct RopePull
     {
-        public Vector3 Unk1;
-        public uint Time1;
-        public uint Time2;
-        public float Unk4;
+        public Vector3 Force; // direction
+        public uint StartTime;
+        public uint EndTime;
+        public float Speed;
         public Vector3 Unk5;
     }
 
     [AeroBlock]
-    public struct ForcedMovementType5Params
+    public struct MovementPermissions
     {
         public Vector3 Velocity; // Bit of an assumption
         public uint Time1;
         public uint Time2;
-        public byte Unk2;
+        public byte Flags;
     }
 
     [AeroBlock]
-    public struct ForcedMovementType6Params
+    public struct Bullrush
     {
-        public Vector3 Unk1;
+        public Vector3 Velocity;
         public uint Time1;
         public uint Time2;
-        public float Extra;
+        public float StrengthMult;
+    }
+
+    [AeroBlock]
+    public struct Immobilize
+    {
+        public uint StartTime;
+        public uint EndTime;
     }
 
     [AeroBlock]
     public struct ForcedMovementType8Params
     {
+        // behaves like Type6/Bullrush
         public Vector3 Unk1;
         public uint Time1;
         public uint Time2;
@@ -428,62 +475,55 @@ namespace AeroMessages.GSS.V66
     }
 
     [AeroBlock]
-    public struct ForcedMovementType9Params
+    public struct FallToGround
     {
-        public uint Time1;
-        public uint Time2;
-        public float Unk1;
-        public Vector3 Unk2;
+        public uint StartTime;
+        public uint EndTime;
+        public float GroundHeight;
+        public Vector3 BodyOrientation;
     }
 
     [AeroBlock]
-    public struct ForcedMovementType10Params
+    public struct OrientationLock
     {
-        public uint Time1;
-        public uint Time2;
-        public Vector3 Unk1;
-        public float Unk2;
+        public uint StartTime;
+        public uint EndTime;
+        public Vector3 LookDirection;
+        public float MaxAimAngleRad;
         public float Unk3;
-        public byte Unk4;
+        public byte Type; // ?
     }
 
     [AeroBlock]
-    public struct ForcedMovementType11Params
+    public struct TeleportAndImmobilize
     {
-        public uint Time1;
-        public uint Time2;
-        public Vector3 Unk1;
-        public Quaternion Unk2;
+        public uint StartTime;
+        public uint EndTime;
+        public Vector3 Position;
+        public Quaternion Orientation;
     }
 
     [AeroBlock]
-    public struct ForcedMovementType12Params
+    public struct TurnToPositionOverTime
     {
-        public Vector3 Unk1;
-        public uint Time1;
-        public uint Time2;
+        public Vector3 Position;
+        public uint StartTime;
+        public uint EndTime;
     }
 
     [AeroBlock]
-    public struct ForcedMovementType7Params
+    public struct Tether
     {
-        public uint Time1;
-        public uint Time2;
-    }
-
-    [AeroBlock]
-    public struct ForcedMovementType13Params
-    {
-        public uint Time1;
-        public uint Time2;
-        public ulong Unk1;
+        public uint StartTime;
+        public uint EndTime;
+        public ulong Unk1; // target i guess
         public Vector3 Unk2;
-        public float Unk3;
+        public float MaxRange;
         public float Unk4;
         public float Unk5;
         public float Unk6;
-        public byte Unk7;
-        public float Unk8;
+        public byte Unk7; // 1 = ignores MaxRange
+        public float Unk8; // speed after hitting max range
         public float Unk9;
     }
 
